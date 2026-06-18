@@ -299,7 +299,7 @@
   }
 
   function navNeedsMenuButton() {
-    if (window.matchMedia("(max-width: 480px)").matches) return true;
+    if (window.matchMedia("(max-width: 768px)").matches) return true;
 
     var logo = document.querySelector(".header .logo");
     var desktop = document.querySelector(".menu__inner--desktop");
@@ -345,8 +345,9 @@
     if (!header || !menu || !trigger) return;
 
     var collapsed;
+    var forceMobile = window.matchMedia("(max-width: 768px)").matches;
 
-    if (header.classList.contains("nav-collapsed")) {
+    if (header.classList.contains("nav-collapsed") && !forceMobile) {
       header.classList.remove("nav-collapsed");
       trigger.classList.add("hidden");
       menu.classList.remove("hidden");

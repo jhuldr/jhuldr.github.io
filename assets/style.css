@@ -746,6 +746,25 @@ a, em, p, strong, li, figcaption, .figure-row figcaption
   padding: 0;
   text-align: left;
   transform: translateX(-0.45em);
+  container-type: inline-size;
+  container-name: hero-title;
+}
+
+@container hero-title (max-width: 44rem) {
+  .post-content--hero .post-title-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transform: none;
+  }
+
+  .post-content--hero .post-content-title {
+    text-align: center;
+  }
+
+  .post-content--hero .title-github-link {
+    margin-left: 0;
+  }
 }
 
 .post-content--hero .post-logo {
@@ -1085,6 +1104,80 @@ a, em, p, strong, li, figcaption, .figure-row figcaption
   .container {
     padding-left: 16px;
     padding-right: 16px;
+  }
+
+  .header {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .header__inner {
+    width: 100%;
+  }
+
+  .menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    margin: 0;
+    padding: 5px;
+    border: none;
+    border-right: none;
+    background: var(--header);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+    border-radius: 5px;
+    z-index: 99;
+  }
+
+  .menu.hidden,
+  .header.nav-collapsed .menu:not(.nav-open) {
+    display: none !important;
+  }
+
+  .header.nav-collapsed .menu.nav-open {
+    display: block !important;
+  }
+
+  .menu__inner--desktop {
+    display: none !important;
+  }
+
+  .menu__inner--mobile {
+    display: none;
+  }
+
+  .header.nav-collapsed .menu.nav-open .menu__inner--mobile {
+    display: block;
+  }
+
+  .menu-trigger {
+    display: none;
+    width: 24px;
+    height: 24px;
+    margin-left: 10px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .header.nav-collapsed .menu-trigger:not(.hidden) {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .post-content--hero .post-title-container {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transform: none;
+  }
+
+  .post-content--hero .post-content-title {
+    text-align: center;
+  }
+
+  .post-content--hero .title-github-link {
+    margin-left: 0;
   }
 
   .post-content,

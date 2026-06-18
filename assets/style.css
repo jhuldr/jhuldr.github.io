@@ -538,7 +538,7 @@ a, em, p, strong, li, figcaption, .figure-row figcaption
   display: flex;
   align-items: stretch;
   position: relative;
-  height: 275px;
+  height: 375px;
   border-radius: 6px;
   overflow: hidden;
   border: 1px solid var(--border-color);
@@ -973,7 +973,7 @@ a, em, p, strong, li, figcaption, .figure-row figcaption
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  gap: 24px;
+  gap: 36px;
   margin: 0;
   max-width: 100%;
   flex-wrap: nowrap;
@@ -1084,12 +1084,11 @@ a, em, p, strong, li, figcaption, .figure-row figcaption
   }
 
   .summary-panel {
-    height: auto;
-    max-height: 50vh;
+    height: min(375px, 50vh);
   }
 
   .summary {
-    max-height: 50vh;
+    max-height: none;
   }
 
   figure:not(.profile-hero),

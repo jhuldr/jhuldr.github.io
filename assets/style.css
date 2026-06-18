@@ -451,6 +451,15 @@ a, em, p, strong, li, figcaption, .figure-row figcaption
 .menu-trigger {
   align-items: center;
   justify-content: center;
+  color: var(--color);
+  cursor: pointer;
+}
+
+.menu-trigger svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+  display: block;
 }
 
 .header.nav-collapsed .menu-trigger:not(.hidden),
@@ -1151,12 +1160,21 @@ a, em, p, strong, li, figcaption, .figure-row figcaption
   }
 
   .menu-trigger {
-    display: none;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
     width: 24px;
     height: 24px;
     margin-left: 10px;
     cursor: pointer;
     flex-shrink: 0;
+    color: var(--color);
+  }
+
+  .menu-trigger svg {
+    width: 24px;
+    height: 24px;
+    fill: currentColor;
   }
 
   .header.nav-collapsed .menu-trigger:not(.hidden) {

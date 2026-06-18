@@ -344,17 +344,21 @@
     var trigger = document.querySelector(".menu-trigger");
     if (!header || !menu || !trigger) return;
 
-    var collapsed;
     var forceMobile = window.matchMedia("(max-width: 768px)").matches;
+    var collapsed;
 
-    if (header.classList.contains("nav-collapsed") && !forceMobile) {
-      header.classList.remove("nav-collapsed");
-      trigger.classList.add("hidden");
-      menu.classList.remove("hidden");
-      menu.classList.remove("nav-open");
+    if (forceMobile) {
+      collapsed = true;
+    } else {
+      if (header.classList.contains("nav-collapsed")) {
+        header.classList.remove("nav-collapsed");
+        trigger.classList.add("hidden");
+        menu.classList.remove("hidden");
+        menu.classList.remove("nav-open");
+      }
+      collapsed = navNeedsMenuButton();
     }
 
-    collapsed = navNeedsMenuButton();
     header.classList.toggle("nav-collapsed", collapsed);
 
     if (collapsed) {
@@ -407,7 +411,10 @@
   });
 
   window.addEventListener("resize", function () {
-    window.requestAnimationFrame(updateNavCollapse);
+    window.requestAnimationFrame(function () {
+      updateNavCollapse();
+      window.requestAnimationFrame(updateNavCollapse);
+    });
   });
 
   if (document.fonts && document.fonts.ready) {
@@ -431,4 +438,8 @@
   }
 
   updateNavCollapse();
+
+  window.addEventListener("load", function () {
+    updateNavCollapse();
+  });
 })();

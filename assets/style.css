@@ -640,6 +640,18 @@ a, em, p, strong, li, figcaption, .figure-row figcaption
   box-sizing: border-box;
 }
 
+.summary h4 {
+  margin-bottom: 0.35em;
+}
+
+.summary h4:first-child {
+  margin-top: 0.15em;
+}
+
+.summary h4:not(:first-child) {
+  margin-top: 0.65em;
+}
+
 .summary::-webkit-scrollbar {
   display: none;
 }

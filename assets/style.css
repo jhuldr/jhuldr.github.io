@@ -538,7 +538,7 @@ a, em, p, strong, li, figcaption, .figure-row figcaption
   display: flex;
   align-items: stretch;
   position: relative;
-  height: 375px;
+  height: 350px;
   border-radius: 6px;
   overflow: hidden;
   border: 1px solid var(--border-color);
@@ -1096,7 +1096,7 @@ a, em, p, strong, li, figcaption, .figure-row figcaption
   }
 
   .summary-panel {
-    height: min(375px, 50vh);
+    height: min(350px, 50vh);
   }
 
   .summary {

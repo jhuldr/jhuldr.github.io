@@ -352,6 +352,57 @@ a, em, p, strong, li, figcaption, .figure-row figcaption
   opacity: 1;
 }
 
+.post-content--publications figure {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.post-content--publications figure img {
+  width: min(360px, 100%);
+  flex: 0 0 auto;
+  align-self: center;
+}
+
+.post-content--publications figure figcaption {
+  display: block;
+  max-width: none;
+  flex: 1;
+  min-width: 0;
+  align-self: center;
+}
+
+.paper-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35em 0.45em;
+  margin: 0.35em 0 0.55em;
+  padding: 0;
+  line-height: 1.3;
+}
+
+.paper-tag {
+  display: inline-block;
+  font-size: 0.78em;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: rgba(0, 88, 163, 1);
+  background: rgba(0, 119, 216, 0.12);
+  border: none;
+  border-radius: 4px;
+  padding: 0.14em 0.55em;
+  white-space: nowrap;
+}
+
+body.dark-theme .paper-tag {
+  color: rgba(140, 195, 245, 1);
+  background: rgba(104, 172, 229, 0.18);
+}
+
 .menu a:hover,
 .menu a:active,
 .menu a.active {
@@ -706,12 +757,19 @@ a, em, p, strong, li, figcaption, .figure-row figcaption
 .paper-figure {
   display: flex;
   justify-content: flex-start;
-  align-items: flex-start;
+  align-items: center;
   text-align: left;
 }
 
 .paper-figure img {
   width: min(360px, 100%);
+  flex: 0 0 auto;
+  align-self: center;
+}
+
+.paper-figure figcaption {
+  display: block;
+  align-self: center;
 }
 
 .post {
@@ -1011,7 +1069,7 @@ a, em, p, strong, li, figcaption, .figure-row figcaption
 
 .profile-hero {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: flex-start;
   gap: 36px;
   margin: 0;
@@ -1025,6 +1083,7 @@ a, em, p, strong, li, figcaption, .figure-row figcaption
   margin: 0;
   flex-shrink: 0;
   display: block;
+  align-self: center;
 }
 
 .profile-hero img,
@@ -1033,21 +1092,30 @@ a, em, p, strong, li, figcaption, .figure-row figcaption
 }
 
 .profile-hero figcaption {
-  display: block;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-self: stretch;
   max-width: none;
   flex: 1 1 auto;
-  margin: 0;
   text-align: left;
 }
 
 .profile-hero h1 {
   text-align: inherit;
   margin-top: 0;
+  margin-bottom: 0.35em;
 }
 
 .profile-hero p {
   text-align: inherit;
   line-height: 1.5;
+  margin-top: 0;
+  margin-bottom: 0.5em;
+}
+
+.profile-hero p:last-child {
+  margin-bottom: 0;
 }
 
 @media (max-width: 720px) {

@@ -32,24 +32,36 @@
 
     if (!track || slides.length === 0) return;
 
-    if (slides.length < 2) {
+    var count = slides.length;
+
+    if (count < 2) {
       if (prevBtn) prevBtn.hidden = true;
       if (nextBtn) nextBtn.hidden = true;
       if (dotsContainer) dotsContainer.hidden = true;
+      return;
     }
+
+    var firstClone = slides[0].cloneNode(true);
+    var lastClone = slides[count - 1].cloneNode(true);
+    firstClone.setAttribute("aria-hidden", "true");
+    lastClone.setAttribute("aria-hidden", "true");
+    firstClone.classList.add("intro-gallery__slide--clone");
+    lastClone.classList.add("intro-gallery__slide--clone");
+    track.insertBefore(lastClone, slides[0]);
+    track.appendChild(firstClone);
 
     var index = 0;
     var snapTimer = null;
     var isSnapping = false;
 
-    if (slides.length >= 2 && dotsContainer) {
+    if (dotsContainer) {
       slides.forEach(function (_slide, i) {
         var dot = document.createElement("button");
         dot.type = "button";
         dot.className = "intro-gallery__dot";
         dot.setAttribute("aria-label", "Go to photo " + (i + 1));
         dot.addEventListener("click", function () {
-          goTo(i, true);
+          goToReal(i, true);
         });
         dotsContainer.appendChild(dot);
       });
@@ -59,54 +71,118 @@
       ? dotsContainer.querySelectorAll(".intro-gallery__dot")
       : [];
 
-    function slideOffset(i) {
-      return i * track.clientWidth;
+    function slideOffset(scrollIndex) {
+      return scrollIndex * track.clientWidth;
     }
 
-    function goTo(i, smooth) {
-      index = Math.max(0, Math.min(slides.length - 1, i));
+    function scrollToIndex(scrollIndex, smooth) {
       isSnapping = true;
       track.scrollTo({
-        left: slideOffset(index),
+        left: slideOffset(scrollIndex),
         behavior: smooth === false ? "auto" : "smooth",
       });
-      updateUI();
       window.setTimeout(function () {
         isSnapping = false;
       }, smooth === false ? 0 : 350);
     }
 
-    function nearestIndex() {
+    function jumpToReal(realIndex) {
+      index = realIndex;
+      isSnapping = true;
+      track.scrollLeft = slideOffset(realIndex + 1);
+      updateUI();
+      isSnapping = false;
+    }
+
+    function goToReal(realIndex, smooth) {
+      index = realIndex;
+      scrollToIndex(realIndex + 1, smooth);
+      updateUI();
+    }
+
+    function goNext(smooth) {
+      if (index === count - 1) {
+        jumpToReal(0);
+      } else {
+        goToReal(index + 1, smooth);
+      }
+    }
+
+    function goPrev(smooth) {
+      if (index === 0) {
+        jumpToReal(count - 1);
+      } else {
+        goToReal(index - 1, smooth);
+      }
+    }
+
+    function nearestScrollIndex() {
       var trackWidth = track.clientWidth || 1;
-      return Math.max(
-        0,
-        Math.min(slides.length - 1, Math.round(track.scrollLeft / trackWidth))
-      );
+      return Math.round(track.scrollLeft / trackWidth);
+    }
+
+    function normalizeAfterScroll() {
+      var scrollIndex = nearestScrollIndex();
+      if (scrollIndex === 0) {
+        index = count - 1;
+        track.scrollLeft = slideOffset(count);
+      } else if (scrollIndex === count + 1) {
+        index = 0;
+        track.scrollLeft = slideOffset(1);
+      } else {
+        index = scrollIndex - 1;
+      }
+      updateUI();
     }
 
     function snapToNearest() {
-      var nextIndex = nearestIndex();
-      if (Math.abs(track.scrollLeft - slideOffset(nextIndex)) > 1) {
-        goTo(nextIndex, true);
+      var scrollIndex = nearestScrollIndex();
+      if (scrollIndex === 0 || scrollIndex === count + 1) {
+        normalizeAfterScroll();
+        return;
+      }
+      if (Math.abs(track.scrollLeft - slideOffset(scrollIndex)) > 1) {
+        scrollToIndex(scrollIndex, true);
+        index = scrollIndex - 1;
+        updateUI();
       } else {
-        index = nextIndex;
-        track.scrollLeft = slideOffset(index);
+        index = scrollIndex - 1;
+        track.scrollLeft = slideOffset(scrollIndex);
         updateUI();
       }
     }
 
     function syncIndexFromScroll() {
       if (isSnapping) return;
-      index = nearestIndex();
-      updateUI();
+      var scrollIndex = nearestScrollIndex();
+      if (scrollIndex >= 1 && scrollIndex <= count) {
+        index = scrollIndex - 1;
+        updateUI();
+      }
+    }
+
+    function stabilizeRectCaption() {
+      if (!gallery.classList.contains("intro-gallery--rect")) return;
+
+      var captionEl = gallery.querySelector(".intro-gallery__caption");
+      if (!captionEl) return;
+
+      var saved = captionEl.innerHTML;
+      var maxH = 0;
+      slides.forEach(function (slide) {
+        var source = slide.querySelector("figcaption");
+        if (!source) return;
+        captionEl.innerHTML = source.innerHTML;
+        maxH = Math.max(maxH, captionEl.getBoundingClientRect().height);
+      });
+      captionEl.style.minHeight = Math.ceil(maxH) + "px";
+      captionEl.innerHTML = saved;
     }
 
     function updateUI() {
       dots.forEach(function (dot, i) {
         dot.classList.toggle("is-active", i === index);
       });
-      if (prevBtn) prevBtn.disabled = index === 0;
-      if (nextBtn) nextBtn.disabled = index === slides.length - 1;
 
       var captionEl = gallery.querySelector(".intro-gallery__caption");
       var source = slides[index] && slides[index].querySelector("figcaption");
@@ -115,15 +191,17 @@
       }
     }
 
+    gallery._stabilizeRectCaption = stabilizeRectCaption;
+
     if (prevBtn) {
       prevBtn.addEventListener("click", function () {
-        goTo(index - 1, true);
+        goPrev(true);
       });
     }
 
     if (nextBtn) {
       nextBtn.addEventListener("click", function () {
-        goTo(index + 1, true);
+        goNext(true);
       });
     }
 
@@ -138,11 +216,47 @@
     );
 
     track.addEventListener("scrollend", function () {
-      if (!isSnapping) snapToNearest();
+      var scrollIndex = nearestScrollIndex();
+      if (scrollIndex === 0 || scrollIndex === count + 1) {
+        normalizeAfterScroll();
+      } else if (!isSnapping) {
+        snapToNearest();
+      }
     });
 
+    gallery._introGalleryReset = function () {
+      index = 0;
+      track.scrollLeft = slideOffset(1);
+      stabilizeRectCaption();
+      updateUI();
+    };
+
+    window.addEventListener("resize", function () {
+      track.scrollLeft = slideOffset(index + 1);
+    });
+
+    stabilizeRectCaption();
     updateUI();
+    track.scrollLeft = slideOffset(1);
   });
+
+  var rectCaptionTimer = null;
+  function remeasureRectCaptions() {
+    document.querySelectorAll(".intro-gallery--rect").forEach(function (gallery) {
+      if (typeof gallery._stabilizeRectCaption === "function") {
+        gallery._stabilizeRectCaption();
+      }
+    });
+  }
+
+  window.addEventListener("resize", function () {
+    window.clearTimeout(rectCaptionTimer);
+    rectCaptionTimer = window.setTimeout(remeasureRectCaptions, 120);
+  });
+
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(remeasureRectCaptions);
+  }
 
   document.querySelectorAll(".summary-panel").forEach(function (panel) {
     var summary = panel.querySelector(".summary");
@@ -283,9 +397,33 @@
 
   document.querySelectorAll(".news-archive").forEach(function (archive) {
     archive.addEventListener("toggle", function () {
+      if (archive.open) {
+        archive.querySelectorAll(".intro-gallery").forEach(function (gallery) {
+          if (gallery._introGalleryReset) {
+            gallery._introGalleryReset();
+          } else {
+            var track = gallery.querySelector(".intro-gallery__track");
+            if (track) {
+              track.scrollLeft = 0;
+              track.dispatchEvent(new Event("scroll"));
+            }
+          }
+        });
+      }
       window.dispatchEvent(new Event("resize"));
     });
   });
+
+  var miscDetails = document.getElementById("misc");
+  if (miscDetails && window.location.hash === "#misc") {
+    miscDetails.setAttribute("open", "");
+    window.requestAnimationFrame(function () {
+      var gallery = miscDetails.querySelector(".intro-gallery");
+      if (gallery && gallery._introGalleryReset) {
+        gallery._introGalleryReset();
+      }
+    });
+  }
 
   function fullLogoWidth(logo) {
     var mark = logo.querySelector(".logo__mark");

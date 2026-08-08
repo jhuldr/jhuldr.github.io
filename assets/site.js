@@ -258,6 +258,94 @@
     document.fonts.ready.then(remeasureRectCaptions);
   }
 
+  /* Match intro gallery total height to intro text on large screens */
+  function matchIntroRowHeights() {
+    var desktop = window.matchMedia("(min-width: 769px)").matches;
+    document.querySelectorAll(".intro-row").forEach(function (row) {
+      var text = row.querySelector(".intro-text");
+      var gallery = row.querySelector(".intro-gallery--rect, .intro-gallery--square");
+      if (!text || !gallery) return;
+
+      var track = gallery.querySelector(".intro-gallery__track");
+      var frame = gallery.querySelector(".intro-gallery__frame");
+      var caption = gallery.querySelector(".intro-gallery__caption");
+      var dots = gallery.querySelector(".intro-gallery__dots");
+
+      gallery.classList.remove("is-height-matched");
+      gallery.style.height = "";
+      gallery.style.maxHeight = "";
+      if (track) {
+        track.style.height = "";
+        track.style.maxHeight = "";
+        track.style.aspectRatio = "";
+      }
+      if (frame) {
+        frame.style.height = "";
+        frame.style.maxHeight = "";
+      }
+
+      if (!desktop) return;
+
+      // Measure text block after clearing gallery constraints
+      var textH = Math.round(text.getBoundingClientRect().height);
+      if (textH <= 0) return;
+
+      gallery.classList.add("is-height-matched");
+      gallery.style.height = textH + "px";
+      gallery.style.maxHeight = textH + "px";
+      gallery.style.overflow = "hidden";
+
+      if (!track) return;
+
+      var chrome = 0;
+      if (caption) {
+        var cStyle = window.getComputedStyle(caption);
+        chrome +=
+          caption.getBoundingClientRect().height +
+          (parseFloat(cStyle.marginTop) || 0) +
+          (parseFloat(cStyle.marginBottom) || 0);
+      }
+      if (dots) {
+        var dStyle = window.getComputedStyle(dots);
+        chrome +=
+          dots.getBoundingClientRect().height +
+          (parseFloat(dStyle.marginTop) || 0) +
+          (parseFloat(dStyle.marginBottom) || 0);
+      }
+
+      var trackH = Math.max(80, Math.round(textH - chrome));
+      track.style.aspectRatio = "auto";
+      track.style.height = trackH + "px";
+      track.style.maxHeight = trackH + "px";
+      if (frame) {
+        frame.style.height = trackH + "px";
+        frame.style.maxHeight = trackH + "px";
+      }
+    });
+  }
+
+  var introHeightTimer = null;
+  function scheduleIntroHeightMatch() {
+    window.clearTimeout(introHeightTimer);
+    introHeightTimer = window.setTimeout(function () {
+      remeasureRectCaptions();
+      matchIntroRowHeights();
+    }, 50);
+  }
+
+  window.addEventListener("resize", scheduleIntroHeightMatch);
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(scheduleIntroHeightMatch);
+  }
+  window.addEventListener("load", scheduleIntroHeightMatch);
+  document.querySelectorAll(".intro-gallery img").forEach(function (img) {
+    if (img.complete) return;
+    img.addEventListener("load", scheduleIntroHeightMatch);
+  });
+  scheduleIntroHeightMatch();
+  // Second pass after layout settles
+  window.setTimeout(scheduleIntroHeightMatch, 200);
+
   document.querySelectorAll(".summary-panel").forEach(function (panel) {
     var summary = panel.querySelector(".summary");
     var rail = panel.querySelector(".summary-rail");

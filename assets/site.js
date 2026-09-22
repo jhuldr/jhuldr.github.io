@@ -23,7 +23,9 @@
     link.setAttribute("rel", "noopener noreferrer");
   });
 
-  document.querySelectorAll(".intro-gallery").forEach(function (gallery) {
+  function initIntroGallery(gallery) {
+    if (gallery.dataset.galleryReady === "1") return;
+
     var track = gallery.querySelector(".intro-gallery__track");
     var slides = gallery.querySelectorAll(".intro-gallery__slide");
     var prevBtn = gallery.querySelector(".intro-gallery__btn--prev");
@@ -31,6 +33,8 @@
     var dotsContainer = gallery.querySelector(".intro-gallery__dots");
 
     if (!track || slides.length === 0) return;
+
+    gallery.dataset.galleryReady = "1";
 
     var count = slides.length;
 
@@ -238,7 +242,13 @@
     stabilizeRectCaption();
     updateUI();
     track.scrollLeft = slideOffset(1);
-  });
+  }
+
+  function initIntroGalleries(root) {
+    (root || document).querySelectorAll(".intro-gallery").forEach(initIntroGallery);
+  }
+
+  initIntroGalleries();
 
   var rectCaptionTimer = null;
   function remeasureRectCaptions() {
@@ -346,10 +356,12 @@
   // Second pass after layout settles
   window.setTimeout(scheduleIntroHeightMatch, 200);
 
-  document.querySelectorAll(".summary-panel").forEach(function (panel) {
+  function initSummaryPanel(panel) {
+    if (panel.dataset.summaryReady === "1") return;
     var summary = panel.querySelector(".summary");
     var rail = panel.querySelector(".summary-rail");
     if (!summary || !rail) return;
+    panel.dataset.summaryReady = "1";
 
     var thumb = document.createElement("div");
     thumb.className = "summary-thumb";
@@ -481,9 +493,17 @@
     }, { passive: true });
     window.addEventListener("resize", updateThumb);
     updateThumb();
-  });
+  }
 
-  document.querySelectorAll(".news-archive").forEach(function (archive) {
+  function initSummaryPanels(root) {
+    (root || document).querySelectorAll(".summary-panel").forEach(initSummaryPanel);
+  }
+
+  initSummaryPanels();
+
+  function initNewsArchive(archive) {
+    if (archive.dataset.newsArchiveReady === "1") return;
+    archive.dataset.newsArchiveReady = "1";
     archive.addEventListener("toggle", function () {
       if (archive.open) {
         archive.querySelectorAll(".intro-gallery").forEach(function (gallery) {
@@ -500,7 +520,13 @@
       }
       window.dispatchEvent(new Event("resize"));
     });
-  });
+  }
+
+  function initNewsArchives(root) {
+    (root || document).querySelectorAll(".news-archive").forEach(initNewsArchive);
+  }
+
+  initNewsArchives();
 
   var miscDetails = document.getElementById("misc");
   if (miscDetails && window.location.hash === "#misc") {
@@ -668,4 +694,69 @@
   window.addEventListener("load", function () {
     updateNavCollapse();
   });
+
+  function markExternalLinks(root) {
+    (root || document).querySelectorAll("a[href]").forEach(function (link) {
+      if (!isExternal(link.getAttribute("href"))) return;
+      link.setAttribute("target", "_blank");
+      link.setAttribute("rel", "noopener noreferrer");
+    });
+  }
+
+  function scrollToHashTarget() {
+    var hash = window.location.hash;
+    if (!hash || hash.length < 2) return;
+    var target = document.getElementById(hash.slice(1));
+    if (target) {
+      window.requestAnimationFrame(function () {
+        target.scrollIntoView();
+      });
+    }
+  }
+
+  function afterIncludesLoaded() {
+    initIntroGalleries(document);
+    initSummaryPanels(document);
+    initNewsArchives(document);
+    markExternalLinks(document);
+    document.querySelectorAll(".intro-gallery img").forEach(function (img) {
+      if (img.complete) return;
+      img.addEventListener("load", scheduleIntroHeightMatch);
+    });
+    scheduleIntroHeightMatch();
+    window.setTimeout(scheduleIntroHeightMatch, 200);
+    scrollToHashTarget();
+  }
+
+  var includeEls = Array.prototype.slice.call(
+    document.querySelectorAll("[data-include]")
+  );
+
+  if (includeEls.length) {
+    Promise.all(
+      includeEls.map(function (el) {
+        var src = el.getAttribute("data-include");
+        if (!src) return Promise.resolve();
+        return fetch(src)
+          .then(function (response) {
+            if (!response.ok) throw new Error("Failed to load " + src);
+            return response.text();
+          })
+          .then(function (html) {
+            var wrapper = document.createElement("div");
+            wrapper.innerHTML = html.trim();
+            var nodes = Array.prototype.slice.call(wrapper.childNodes);
+            var parent = el.parentNode;
+            nodes.forEach(function (node) {
+              parent.insertBefore(node, el);
+            });
+            parent.removeChild(el);
+          })
+          .catch(function (err) {
+            console.error(err);
+            el.innerHTML = "<p>Unable to load content.</p>";
+          });
+      })
+    ).then(afterIncludesLoaded);
+  }
 })();
